@@ -128,7 +128,7 @@ public class Main
 
         public int compareTo(GradedGeek o)
         {
-            return Integer.compare(grade, o.grade);
+            return Integer.valueOf(grade).compareTo(o.grade);
         }
 
         @Override
