@@ -1,5 +1,6 @@
 package net.codestory2;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,7 +10,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -27,23 +30,38 @@ public class Main
 
     private Map<String, Geek> geeksByEmail = Maps.newHashMap();
 
-    public void parse(InputStream res) throws Exception
+    public void parse(InputStream res)
     {
-        JsonParser jsonParser = null;
+        try
+        {
+            JsonParser jsonParser = null;
 
-        jsonParser = new JsonFactory().createJsonParser(res);
-        ObjectMapper mapper = new ObjectMapper();
-        List<Geek> newGeeks = mapper.readValue(jsonParser, new TypeReference<List<Geek>>()
+            jsonParser = new JsonFactory().createJsonParser(res);
+            ObjectMapper mapper = new ObjectMapper();
+            List<Geek> newGeeks = mapper.readValue(jsonParser, new TypeReference<List<Geek>>()
+            {
+            });
+            for (Geek geek : newGeeks)
+            {
+                geeksByEmail.put(geek.getEmail(), geek);
+                likes.put(geek.getLike1(), geek);
+                likes.put(geek.getLike2(), geek);
+                likes.put(geek.getLike3(), geek);
+                hates.put(geek.getHate1(), geek);
+                hates.put(geek.getHate2(), geek);
+            }
+        }
+        catch (JsonParseException e)
         {
-        });
-        for (Geek geek : newGeeks)
+            throw new RuntimeException(e);
+        }
+        catch (JsonMappingException e)
         {
-            geeksByEmail.put(geek.getEmail(), geek);
-            likes.put(geek.getLike1(), geek);
-            likes.put(geek.getLike2(), geek);
-            likes.put(geek.getLike3(), geek);
-            hates.put(geek.getHate1(), geek);
-            hates.put(geek.getHate2(), geek);
+            throw new RuntimeException(e);
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
         }
     }
 
@@ -52,9 +70,16 @@ public class Main
         return geeksByEmail.get(name);
     }
 
-    public Main() throws Exception
+    public Main()
     {
-        parse(Main.class.getResource("/codestory2013.json").openStream());
+        try
+        {
+            parse(Main.class.getResource("/codestory2013.json").openStream());
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void main(String[] args) throws Exception
